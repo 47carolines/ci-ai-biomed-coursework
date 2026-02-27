@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import torch
 import time
+import matplotlib.pyplot as plt
 
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
@@ -264,7 +265,59 @@ def run_experiments():
 
         print("Saved results.csv")
 
+def generate_plots():
+
+    import matplotlib.pyplot as plt
+
+    df = pd.read_csv("results.csv")
+
+    # Plot Runtime vs Channels
+    plt.figure(figsize=(6,4))
+    plt.plot(df["Channels"], df["Runtime"], marker="o")
+    plt.xlabel("Channels")
+    plt.ylabel("Runtime (seconds)")
+    plt.title("Runtime vs Network Size")
+    plt.grid()
+    plt.tight_layout()
+    plt.savefig("runtime.png")
+    plt.show()
+
+    # Train Accuracy vs Channels
+    plt.figure(figsize=(6,4))
+    plt.plot(df["Channels"], df["TrainAcc"], marker="o")
+    plt.xlabel("Channels")
+    plt.ylabel("Train Accuracy")
+    plt.title("Train Accuracy vs Network Size")
+    plt.grid()
+    plt.tight_layout()
+    plt.savefig("train_accuracy.png")
+    plt.show()
+
+    # Test Accuracy vs Channels
+    plt.figure(figsize=(6,4))
+    plt.plot(df["Channels"], df["TestAcc"], marker="o")
+    plt.xlabel("Channels")
+    plt.ylabel("Test Accuracy")
+    plt.title("Test Accuracy vs Network Size")
+    plt.grid()
+    plt.tight_layout()
+    plt.savefig("test_accuracy.png")
+    plt.show()
+
+    # Runtime vs Layers
+    plt.figure(figsize=(6,4))
+    plt.plot(df["Layers"], df["Runtime"], marker="o")
+    plt.xlabel("Layers")
+    plt.ylabel("Runtime (seconds)")
+    plt.title("Runtime vs Network Depth")
+    plt.grid()
+    plt.tight_layout()
+    plt.savefig("runtime_layers.png")
+    plt.show()
+
+    print("Plots generated.")
 # -------------------------------------------------
 
 if __name__ == "__main__":
     run_experiments()
+    generate_plots()
