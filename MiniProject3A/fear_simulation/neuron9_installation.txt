@@ -1,0 +1,12 @@
+1. Install NEURON 9.0.1 
+  a. The NEURON Simulator — NEURON documentation 
+  b. Go into your files, rename the “Unconfirmed Download” to have the .exe suffix (yes, this is safe), and run. 
+2. Get your Python environment to recognize this installation 
+  a. Check where your new nrn file is located. Most likely C:/nrn. Save this path. 
+  b. Go into C:/Users/YOUR_ACCOUNT_NAME/miniconda3/site-packages. 
+  c. Create a new .txt file. Paste the directory you copied into there, and then add /lib/python. For example, if my nrn folder is at C:/nrn, I’ll paste C:/nrn/Lib/python. This should be the only text in the text file. 
+  d. Rename this file to neuron.pth. The suffix must be changed to path; not neuron.pth.txt. 
+3. Test if the package works 
+  a. Open up a python folder and run the following code. If this works, then you can now use NEURON. If this errors, contact Jack Kidnie in class or at jlkhg8 for assistance. 
+    i. Import neuron 
+    ii. Neuron.test()
