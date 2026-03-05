@@ -3,14 +3,14 @@ import subprocess
 
 ie = sys.argv[1]
 
-print("Running simulation with I_E =", ie)
+cmd = f"""
+source ~/miniconda3/etc/profile.d/conda.sh
+conda activate fear_sim
 
-# update parameters file
-subprocess.run(["python", "build_network.py"])
-subprocess.run(["python", "update_configs.py"])
+python build_network.py
+python update_configs.py
+sbatch batch.sh
+python check_output.py
+"""
 
-# run simulation with SLURM
-subprocess.run(["sbatch", "batch.sh"])
-
-# check output
-subprocess.run(["python", "check_output.py"])
+subprocess.run(["ssh", "Node2", cmd])
