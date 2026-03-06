@@ -25,6 +25,7 @@ echo '[Worker] Updating configs'
 python update_configs.py
 
 echo '[Worker] Submitting SLURM job'
+
 JOB_ID=$(sbatch batch.sh | awk '{{print $4}}')
 echo "Submitted batch job $JOB_ID"
 
@@ -37,18 +38,19 @@ done
 
 echo '[Worker] Simulation finished'
 
-python check_output.py > freq.txt
-
-cat freq.txt
+python check_output.py
 """
 
-result = subprocess.run(
+process = subprocess.Popen(
     ["ssh", "Node2", "bash", "-lc", worker_cmd],
-    capture_output=True,
+    stdout=subprocess.PIPE,
+    stderr=subprocess.STDOUT,
     text=True
 )
 
-print(result.stdout.strip(), flush=True)
-print(result.stderr.strip(), flush=True)
+for line in process.stdout:
+    print(line, end="", flush=True)
 
-log("Controller pipeline finished.")
+process.wait()
+
+print("Controller pipeline finished.", flush=True)
