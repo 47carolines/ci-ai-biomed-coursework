@@ -1,9 +1,15 @@
 from microbit import *
 
-frequency = 2   # default frequency if argument fails
+# Frequency injected by pipeline rewrite
+frequency = 2
 
 def flicker(freq):
-    wait_time = 1000 / (2 * freq)
+
+    # Safety guard
+    if freq <= 0:
+        freq = 2
+
+    wait_time = int(1000 / (2 * freq))
 
     while True:
         display.set_pixel(2, 2, 9)
@@ -12,11 +18,5 @@ def flicker(freq):
         display.set_pixel(2, 2, 0)
         sleep(wait_time)
 
-# Try reading runtime frequency if possible
-try:
-    import sys
-    frequency = float(sys.argv[1])
-except:
-    pass
-
+# Run flicker
 flicker(frequency)
