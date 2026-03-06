@@ -11,7 +11,6 @@ def main():
 
     cmd = f"python3 controller_server.py {ie}"
 
-    # Stream output live from controller node
     process = subprocess.Popen(
         [
             "ssh",
@@ -25,31 +24,27 @@ def main():
         text=True
     )
 
-    # Live logging
-    output_buffer = ""
+    buffer_output = ""
 
     for line in process.stdout:
         print(line, end="", flush=True)
-        output_buffer += line
+        buffer_output += line
 
     process.wait()
 
-    print("Controller pipeline finished.")
-
-    # Extract frequency
-    match = re.search(r"[\d]+\.?[\d]*", output_buffer)
+    match = re.search(r"\d+\.?\d*", buffer_output)
 
     if not match:
-        print("Failed to get frequency from controller output.")
+        print("Failed to get frequency")
         return
 
     frequency = match.group(0)
 
     print(f"Received frequency: {frequency}")
 
-    # Update microbit firmware file
+    # Flash microbit
     try:
-        print("Updating flicker firmware...")
+        print("Flashing microbit...")
 
         with open("flicker.py", "r") as f:
             lines = f.readlines()
@@ -59,16 +54,14 @@ def main():
         with open("flicker.py", "w") as f:
             f.writelines(lines)
 
-        print("Flashing microbit...")
         subprocess.run(["uflash", "flicker.py"])
 
-        print("Microbit flashing complete.")
+        print("Microbit flashing complete")
 
     except Exception as e:
-        print("Flashing failed:", e)
+        print("Microbit flashing failed:", e)
 
     print("Pipeline finished.")
-
 
 if __name__ == "__main__":
     main()

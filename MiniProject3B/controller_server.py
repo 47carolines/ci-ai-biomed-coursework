@@ -1,5 +1,7 @@
 import sys
 import subprocess
+import time
+import re
 
 def log(msg):
     print(msg, flush=True)
@@ -27,13 +29,17 @@ python update_configs.py
 echo '[Worker] Submitting SLURM job'
 
 JOB_ID=$(sbatch batch.sh | awk '{{print $4}}')
+echo $JOB_ID > job_id.txt
 echo "Submitted batch job $JOB_ID"
 
-echo '[Worker] Waiting for simulation completion'
-
-while squeue -j $JOB_ID > /dev/null 2>&1
+# Wait for job completion
+while true
 do
-    sleep 5
+    STATUS=$(sacct -j $JOB_ID --format=State --noheader | head -n 1 | tr -d ' ')
+    if [[ "$STATUS" == "COMPLETED" || "$STATUS" == "FAILED" || "$STATUS" == "" ]]; then
+        break
+    fi
+    sleep 2
 done
 
 echo '[Worker] Simulation finished'
@@ -48,9 +54,20 @@ process = subprocess.Popen(
     text=True
 )
 
+output_buffer = ""
+
 for line in process.stdout:
     print(line, end="", flush=True)
+    output_buffer += line
 
 process.wait()
+
+# Extract frequency
+match = re.search(r"\d+\.?\d*", output_buffer)
+
+if match:
+    print(match.group(0), flush=True)
+else:
+    print("Frequency extraction failed", flush=True)
 
 print("Controller pipeline finished.", flush=True)
