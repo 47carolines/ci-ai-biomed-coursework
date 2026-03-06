@@ -4,18 +4,20 @@ import re
 controller_host = "2610:1e0:1700:206:f816:3eff:fefe:fc1b"
 
 def extract_frequency(text):
-    # Look for lines mentioning oscillation or Hz
-    candidates = [
-        line for line in text.split("\n")
-        if "Hz" in line or "oscillat" in line
-    ]
+    """
+    Parse frequency by scanning output from bottom upward.
+    Accepts pure numeric line like:
+    7.041261794116602
+    """
+    lines = text.strip().split("\n")
 
-    for line in reversed(candidates):
-        match = re.search(r"\d+\.\d+", line)
-        if match:
-            return match.group(0)
+    for line in reversed(lines):
+        line = line.strip()
+        if re.match(r"^\d+\.\d+$", line):
+            return line
 
     return None
+
 
 def main():
 
@@ -54,9 +56,9 @@ def main():
 
     print(f"Received frequency: {frequency}")
 
-    # Flash microbit firmware
+    # ---------- Microbit Flash ----------
     try:
-        print("Flashing flicker.py to microbit")
+        print("Flashing microbit...")
 
         with open("flicker.py", "r") as f:
             lines = f.readlines()
@@ -73,7 +75,8 @@ def main():
     except Exception as e:
         print("Microbit flashing failed:", e)
 
-    print("Pipeline finished")
+    print("Pipeline finished.")
+
 
 if __name__ == "__main__":
     main()
