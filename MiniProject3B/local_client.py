@@ -3,22 +3,27 @@ import re
 
 controller_host = "2610:1e0:1700:206:f816:3eff:fefe:fc1b"
 
+
+# -------------------------------------------------
+# Frequency parsing (robust version)
+# -------------------------------------------------
 def extract_frequency(text):
     """
-    Parse frequency by scanning output from bottom upward.
-    Accepts pure numeric line like:
-    7.041261794116602
+    Extract the last floating point number in output.
+    This is robust to pipeline logging noise.
     """
-    lines = text.strip().split("\n")
 
-    for line in reversed(lines):
-        line = line.strip()
-        if re.match(r"^\d+\.\d+$", line):
-            return line
+    matches = re.findall(r"\d+\.\d+", text)
 
-    return None
+    if len(matches) == 0:
+        return None
+
+    return matches[-1]
 
 
+# -------------------------------------------------
+# Main pipeline
+# -------------------------------------------------
 def main():
 
     ie = input("Enter current injection amplitude (nA): ")
@@ -42,12 +47,14 @@ def main():
 
     buffer_output = ""
 
+    # Stream logs live
     for line in process.stdout:
         print(line, end="", flush=True)
         buffer_output += line
 
     process.wait()
 
+    # Extract frequency
     frequency = extract_frequency(buffer_output)
 
     if frequency is None:
@@ -56,14 +63,29 @@ def main():
 
     print(f"Received frequency: {frequency}")
 
-    # ---------- Microbit Flash ----------
+
+    # -------------------------------------------------
+    # Rewrite frequency inside flicker.py safely
+    # -------------------------------------------------
     try:
         print("Flashing microbit...")
 
         with open("flicker.py", "r") as f:
             lines = f.readlines()
 
-        lines[0] = f"frequency = {frequency}\n"
+        # Replace existing frequency line if present
+        found = False
+
+        for i, line in enumerate(lines):
+            if "frequency =" in line:
+                lines[i] = f"frequency = {frequency}\n"
+                found = True
+                break
+
+        # If no frequency line exists, insert after imports
+        if not found:
+            insert_index = 1 if len(lines) > 0 else 0
+            lines.insert(insert_index, f"frequency = {frequency}\n")
 
         with open("flicker.py", "w") as f:
             f.writelines(lines)
@@ -78,5 +100,6 @@ def main():
     print("Pipeline finished.")
 
 
+# -------------------------------------------------
 if __name__ == "__main__":
     main()

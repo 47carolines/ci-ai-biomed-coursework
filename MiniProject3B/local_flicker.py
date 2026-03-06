@@ -1,11 +1,10 @@
 from microbit import *
 
-# Frequency injected by pipeline rewrite
+# Pipeline will rewrite this line
 frequency = 2
 
 def flicker(freq):
 
-    # Safety guard
     if freq <= 0:
         freq = 2
 
@@ -18,5 +17,4 @@ def flicker(freq):
         display.set_pixel(2, 2, 0)
         sleep(wait_time)
 
-# Run flicker
 flicker(frequency)
