@@ -1,7 +1,5 @@
 import sys
 import subprocess
-import time
-import re
 
 def log(msg):
     print(msg, flush=True)
@@ -32,7 +30,8 @@ JOB_ID=$(sbatch batch.sh | awk '{{print $4}}')
 echo $JOB_ID > job_id.txt
 echo "Submitted batch job $JOB_ID"
 
-# Wait for job completion
+echo '[Worker] Waiting for simulation completion'
+
 while true
 do
     STATUS=$(sacct -j $JOB_ID --format=State --noheader | head -n 1 | tr -d ' ')
@@ -54,20 +53,9 @@ process = subprocess.Popen(
     text=True
 )
 
-output_buffer = ""
-
 for line in process.stdout:
     print(line, end="", flush=True)
-    output_buffer += line
 
 process.wait()
-
-# Extract frequency
-match = re.search(r"\d+\.?\d*", output_buffer)
-
-if match:
-    print(match.group(0), flush=True)
-else:
-    print("Frequency extraction failed", flush=True)
 
 print("Controller pipeline finished.", flush=True)

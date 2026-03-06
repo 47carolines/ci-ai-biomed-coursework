@@ -3,6 +3,20 @@ import re
 
 controller_host = "2610:1e0:1700:206:f816:3eff:fefe:fc1b"
 
+def extract_frequency(text):
+    # Look for lines mentioning oscillation or Hz
+    candidates = [
+        line for line in text.split("\n")
+        if "Hz" in line or "oscillat" in line
+    ]
+
+    for line in reversed(candidates):
+        match = re.search(r"\d+\.\d+", line)
+        if match:
+            return match.group(0)
+
+    return None
+
 def main():
 
     ie = input("Enter current injection amplitude (nA): ")
@@ -32,19 +46,17 @@ def main():
 
     process.wait()
 
-    match = re.search(r"\d+\.?\d*", buffer_output)
+    frequency = extract_frequency(buffer_output)
 
-    if not match:
-        print("Failed to get frequency")
+    if frequency is None:
+        print("Failed to extract frequency")
         return
-
-    frequency = match.group(0)
 
     print(f"Received frequency: {frequency}")
 
-    # Flash microbit
+    # Flash microbit firmware
     try:
-        print("Flashing microbit...")
+        print("Flashing flicker.py to microbit")
 
         with open("flicker.py", "r") as f:
             lines = f.readlines()
@@ -61,7 +73,7 @@ def main():
     except Exception as e:
         print("Microbit flashing failed:", e)
 
-    print("Pipeline finished.")
+    print("Pipeline finished")
 
 if __name__ == "__main__":
     main()
