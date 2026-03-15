@@ -27,7 +27,7 @@ echo '[Worker] Updating parameters.py'
 sed -i "s/^I_E = .*/I_E = {ie}/" parameters.py
 
 echo '[Worker] Building network'
-python build_network.py --overwrite_config=True
+python build_network.py
 
 echo '[Worker] Updating configs'
 python update_configs.py

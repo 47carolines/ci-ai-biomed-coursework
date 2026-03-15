@@ -50,18 +50,17 @@ def main():
 
     print(f"[Controller] Received frequency: {frequency}")
 
-    threshold = 15.0  # Hz threshold
-    cutebot_script = "cutebot_pattern.py" if frequency >= threshold else "cutebot_step.py"
-    print(f"[Decision] Flashing Cutebot with {cutebot_script}")
-
     t2 = time.time()  # Step C start
 
     # Step C: Flash Cutebot
+    threshold = 2.0  # Hz, can adjust
+    cutebot_script = "cutebot_move_task.py" if frequency >= threshold else "cutebot_step.py"
+    print(f"[Decision] Flashing Cutebot with {cutebot_script}")
+
     try:
-        subprocess.run(["python3", cutebot_script], check=True)
-        print("[Robot] Cutebot executed successfully")
-    except Exception as e:
-        print("[Robot] Cutebot execution failed:", e)
+        subprocess.run(["uflash", cutebot_script], check=True)
+    except subprocess.CalledProcessError as e:
+        print(f"[Robot] Cutebot execution failed: {e}")
 
     t3 = time.time()
 
