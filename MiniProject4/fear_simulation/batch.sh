@@ -4,7 +4,7 @@
 #SBATCH -N 1                    # Number of nodes
 #SBATCH -n 1                    # Total number of tasks
 #SBATCH --ntasks-per-node=1     # Tasks per node
-#SBATCH --partition=worker      # Partition/queue to submit to
+#SBATCH --partition=debug      # Partition/queue to submit to
 #SBATCH --output=slurm_output_%j.txt  # SLURM output file
 #SBATCH --chdir=/home/ubuntu/fear_simulation  # Working directory
 

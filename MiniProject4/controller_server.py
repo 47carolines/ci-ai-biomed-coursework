@@ -61,6 +61,7 @@ echo '[Worker] Pipeline finished.'
 """
 
 # Run the SSH command
+worker_cmd = worker_cmd.strip()
 process = subprocess.Popen(
     ["ssh", "Node2", "bash", "-lc", worker_cmd],
     stdout=subprocess.PIPE,
