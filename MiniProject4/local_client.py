@@ -53,7 +53,7 @@ def main():
     t2 = time.time()  # Step C start
 
     # Step C: Flash Cutebot
-    threshold = 2.0  # Hz, can adjust
+    threshold = 5.0  # Hz, can adjust
     cutebot_script = "cutebot_move_task.py" if frequency >= threshold else "cutebot_step.py"
     print(f"[Decision] Flashing Cutebot with {cutebot_script}")
 
