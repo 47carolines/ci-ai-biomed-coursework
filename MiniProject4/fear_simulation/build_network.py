@@ -140,7 +140,8 @@ if __name__ == "__main__":
         v_init = -65,
         include_examples = False,
         compile_mechanisms = False,
-        config_file = 'config.json'
+        config_file = 'config.json',
+        overwrite_config=True
     )
 
     with open("gid_info.json", "w") as file:
