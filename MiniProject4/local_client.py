@@ -1,37 +1,27 @@
 import subprocess
 import re
+import time
 
-controller_host = "2610:1e0:1700:206:f816:3eff:fefe:fc1b"
-
+controller_host = "2610:1e0:1700:206:f816:3eff:fe86:38c9"
 
 # -------------------------------------------------
-# Frequency parsing (robust version)
+# Frequency parsing
 # -------------------------------------------------
 def extract_frequency(text):
-    """
-    Extract the last floating point number in output.
-    This is robust to pipeline logging noise.
-    """
-
     matches = re.findall(r"\d+\.\d+", text)
-
-    if len(matches) == 0:
-        return None
-
-    return matches[-1]
-
+    return float(matches[-1]) if matches else None
 
 # -------------------------------------------------
 # Main pipeline
 # -------------------------------------------------
 def main():
-
     ie = input("Enter current injection amplitude (nA): ")
-
     print(f"Sending I_E = {ie} to controller node...")
 
-    cmd = f"python3 controller_server.py {ie}"
+    t0 = time.time()  # Step A start
 
+    # Step A: Run simulation on controller node
+    cmd = f"python3 controller_server.py {ie}"
     process = subprocess.Popen(
         [
             "ssh",
@@ -46,60 +36,42 @@ def main():
     )
 
     buffer_output = ""
-
-    # Stream logs live
     for line in process.stdout:
         print(line, end="", flush=True)
         buffer_output += line
-
     process.wait()
+    t1 = time.time()  # Step B start
 
-    # Extract frequency
+    # Step B: Decision
     frequency = extract_frequency(buffer_output)
-
     if frequency is None:
-        print("Failed to extract frequency")
-        return
+        print("Failed to extract frequency, defaulting to small step")
+        frequency = 0.0
 
-    print(f"Received frequency: {frequency}")
+    print(f"[Controller] Received frequency: {frequency}")
 
+    threshold = 15.0  # Hz threshold
+    cutebot_script = "cutebot_pattern.py" if frequency >= threshold else "cutebot_step.py"
+    print(f"[Decision] Flashing Cutebot with {cutebot_script}")
 
-    # -------------------------------------------------
-    # Rewrite frequency inside flicker.py safely
-    # -------------------------------------------------
+    t2 = time.time()  # Step C start
+
+    # Step C: Flash Cutebot
     try:
-        print("Flashing microbit...")
-
-        with open("flicker.py", "r") as f:
-            lines = f.readlines()
-
-        # Replace existing frequency line if present
-        found = False
-
-        for i, line in enumerate(lines):
-            if "frequency =" in line:
-                lines[i] = f"frequency = {frequency}\n"
-                found = True
-                break
-
-        # If no frequency line exists, insert after imports
-        if not found:
-            insert_index = 1 if len(lines) > 0 else 0
-            lines.insert(insert_index, f"frequency = {frequency}\n")
-
-        with open("flicker.py", "w") as f:
-            f.writelines(lines)
-
-        subprocess.run(["uflash", "flicker.py"])
-
-        print("Microbit flashing complete")
-
+        subprocess.run(["python3", cutebot_script], check=True)
+        print("[Robot] Cutebot executed successfully")
     except Exception as e:
-        print("Microbit flashing failed:", e)
+        print("[Robot] Cutebot execution failed:", e)
 
-    print("Pipeline finished.")
+    t3 = time.time()
 
+    # Latency summary
+    print("\n[Latency report]")
+    print(f"Step A (Simulation)       : {t1 - t0:.3f} s")
+    print(f"Step B (Decision)         : {t2 - t1:.3f} s")
+    print(f"Step C (Robot execution)  : {t3 - t2:.3f} s")
+    print(f"Total pipeline latency    : {t3 - t0:.3f} s")
+    print("[Pipeline finished]")
 
-# -------------------------------------------------
 if __name__ == "__main__":
     main()
