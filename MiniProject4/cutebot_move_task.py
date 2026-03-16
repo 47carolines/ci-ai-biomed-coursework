@@ -1,4 +1,4 @@
-# cutebot_pattern.py
+# cutebot_move_task.py
 from cutebot import *
 
 # Speed and duration settings
