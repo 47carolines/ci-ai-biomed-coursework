@@ -35,24 +35,6 @@ python update_configs.py
 echo "[Worker] Running simulation"
 srun python run_bionet.py config.json
 
-# Check spike file info
-echo "[Worker] Output folder contents:"
-ls -lh output/
-
-echo "[Worker] Spike file info:"
-ls -lh output/spikes.h5
-file output/spikes.h5
-
-# Quick check: print spike counts per neuron
-echo "[Worker] Spike counts per neuron:"
-python - <<EOF
-from bmtk.utils.reports.spike_trains import SpikeTrains
-spikes = SpikeTrains.load('output/spikes.h5', population='PING-Assembly')
-for n in spikes.node_ids():
-    times = spikes.get_times(n)
-    print(f"Neuron {n}: {len(times)} spikes")
-EOF
-
 # Optionally run check_output.py for firing rate
 echo "[Worker] Calculated firing rate:"
 python check_output.py
