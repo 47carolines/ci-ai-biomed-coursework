@@ -27,7 +27,7 @@ echo '[Worker] Current I_E before update:'
 grep '^[[:space:]]*I_E' parameters.py
 
 echo '[Worker] Updating parameters.py'
-sed -i "s/^[[:space:]]*I_E *=.*/I_E = {ie}/" parameters.py
+sed -i "s/^\([[:space:]]*\)I_E *=.*/\1I_E = {ie}/" parameters.py
 
 echo '[Worker] I_E after update:'
 grep '^[[:space:]]*I_E' parameters.py
