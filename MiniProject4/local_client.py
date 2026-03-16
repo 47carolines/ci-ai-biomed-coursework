@@ -8,8 +8,8 @@ controller_host = "2610:1e0:1700:206:f816:3eff:fe86:38c9"
 # Frequency parsing
 # -------------------------------------------------
 def extract_frequency(text):
-    matches = re.findall(r"\d+\.\d+", text)
-    return float(matches[-1]) if matches else None
+    match = re.search(r"FiringRate:\s+(\d+\.\d+)", text)
+    return float(match.group(1)) if match else None
 
 # -------------------------------------------------
 # Main pipeline

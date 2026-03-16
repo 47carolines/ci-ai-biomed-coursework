@@ -36,8 +36,8 @@ echo "[Worker] Running simulation"
 srun python run_bionet.py config.json
 
 # Optionally run check_output.py for firing rate
-echo "[Worker] Calculated firing rate:"
-python check_output.py
+firing_rate=$(python check_output.py)
+echo "[Worker] FiringRate: $firing_rate"
 
 # Record end time
 END=$(date)
