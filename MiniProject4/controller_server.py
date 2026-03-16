@@ -24,7 +24,7 @@ conda activate fear_sim
 cd ~/fear_simulation
 
 echo '[Worker] Updating parameters.py'
-sed -i "s/^I_E = .*/I_E = {ie}/" parameters.py
+sed -i "s/^I_E *= *[0-9.]\+;*/I_E = {ie}/" parameters.py
 
 echo '[Worker] Building network'
 python build_network.py
