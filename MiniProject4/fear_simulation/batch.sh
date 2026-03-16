@@ -1,10 +1,10 @@
 #!/bin/bash
 
-#SBATCH --job-name=sim          # Name of the job
-#SBATCH -N 1                    # Number of nodes
-#SBATCH -n 1                    # Total number of tasks
+#SBATCH --job-name=sim          # Job name
+#SBATCH -N 1                    # Nodes
+#SBATCH -n 1                    # Total tasks
 #SBATCH --ntasks-per-node=1     # Tasks per node
-#SBATCH --partition=debug      # Partition/queue to submit to
+#SBATCH --partition=debug      # Queue
 #SBATCH --output=slurm_output_%j.txt  # SLURM output file
 #SBATCH --chdir=/home/ubuntu/fear_simulation  # Working directory
 
@@ -15,15 +15,48 @@ START=$(date)
 eval "$(~/miniconda3/bin/conda shell.bash hook)"
 conda activate fear_sim
 
-# Optional: rebuild network configs (overwrite if they exist)
+# Print debug info
+echo "----------------------------------------"
+echo "[DEBUG] SLURM running on: $(hostname)"
+echo "[DEBUG] Current working directory: $(pwd)"
+echo "[DEBUG] I_E in parameters.py:"
+grep 'I_E' parameters.py
+echo "----------------------------------------"
+
+# Rebuild network
+echo "[Worker] Building network"
 python build_network.py
 
+# Update configs if needed
+echo "[Worker] Updating configs"
+python update_configs.py
+
 # Run the simulation
+echo "[Worker] Running simulation"
 srun python run_bionet.py config.json
 
-# Check output after simulation
+# Check spike file info
+echo "[Worker] Output folder contents:"
+ls -lh output/
+
+echo "[Worker] Spike file info:"
+ls -lh output/spikes.h5
+file output/spikes.h5
+
+# Quick check: print spike counts per neuron
+echo "[Worker] Spike counts per neuron:"
+python - <<EOF
+from bmtk.utils.reports.spike_trains import SpikeTrains
+spikes = SpikeTrains.load('output/spikes.h5', population='PING-Assembly')
+for n in spikes.node_ids:
+    times = spikes.get_times(n)
+    print(f"Neuron {n}: {len(times)} spikes")
+EOF
+
+# Optionally run check_output.py for firing rate
+echo "[Worker] Calculated firing rate:"
 python check_output.py
 
 # Record end time
 END=$(date)
-printf "Start: $START \nEnd:   $END\n"
+printf "----------------------------------------\nStart: $START \nEnd:   $END\n"
