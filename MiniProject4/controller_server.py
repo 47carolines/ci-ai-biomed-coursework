@@ -59,12 +59,10 @@ while true; do
     sleep 2
 done
 
-# -------------------------------------------------
-# Extract firing rate from SLURM output
-# -------------------------------------------------
-SLURM_OUT=$(ls -t slurm_output_${JOB_ID}.txt | head -n1)
-FIRING_RATE=$(grep "FiringRate:" "$SLURM_OUT" | awk '{{print $2}}')
-echo "[Worker] FiringRate from SLURM output: $FIRING_RATE"
+# Get latest SLURM output
+SLURM_OUT=$(ls -t slurm_output_${{JOB_ID}}.txt | head -n1)
+echo "[Worker] Reading SLURM output from $SLURM_OUT"
+cat $SLURM_OUT
 
 echo '[Worker] Pipeline finished.'
 """
