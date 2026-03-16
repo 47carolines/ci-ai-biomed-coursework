@@ -21,6 +21,9 @@ python build_network.py
 # Run the simulation
 srun python run_bionet.py config.json
 
+# Check output after simulation
+python check_output.py
+
 # Record end time
 END=$(date)
 printf "Start: $START \nEnd:   $END\n"

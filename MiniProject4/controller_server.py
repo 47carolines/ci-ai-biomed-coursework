@@ -59,9 +59,6 @@ while true; do
     sleep 2
 done
 
-echo '[Worker] Checking output'
-python check_output.py
-
 echo '[Worker] Pipeline finished.'
 """
 
