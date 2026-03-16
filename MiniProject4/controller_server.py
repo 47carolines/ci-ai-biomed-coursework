@@ -23,14 +23,8 @@ conda activate fear_sim
 
 cd ~/fear_simulation
 
-echo '[Worker] Current I_E before update:'
-grep '^[[:space:]]*I_E' parameters.py
-
 echo '[Worker] Updating parameters.py'
-sed -i "s/^\([[:space:]]*\)I_E *=.*/\1I_E = {ie}/" parameters.py
-
-echo '[Worker] I_E after update:'
-grep '^[[:space:]]*I_E' parameters.py
+python update_params.py {ie}
 
 echo '[Worker] Building network'
 python build_network.py
