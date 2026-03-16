@@ -48,7 +48,7 @@ echo "[Worker] Spike counts per neuron:"
 python - <<EOF
 from bmtk.utils.reports.spike_trains import SpikeTrains
 spikes = SpikeTrains.load('output/spikes.h5', population='PING-Assembly')
-for n in spikes.node_ids:
+for n in spikes.node_ids():
     times = spikes.get_times(n)
     print(f"Neuron {n}: {len(times)} spikes")
 EOF
@@ -59,4 +59,5 @@ python check_output.py
 
 # Record end time
 END=$(date)
-printf "----------------------------------------\nStart: $START \nEnd:   $END\n"
+echo "Start: $START"
+echo "End:   $END"
