@@ -44,24 +44,27 @@ def main():
 
     # Step B: Decision
     frequency = extract_frequency(buffer_output)
+    threshold = 5.0  # Hz
     if frequency is None:
         print("Failed to extract frequency, defaulting to small step")
         frequency = 0.0
 
-    print(f"[Controller] Received frequency: {frequency}")
+    # Log clearly above/below threshold
+    if frequency >= threshold:
+        print(f"[Controller] Frequency {frequency:.2f} Hz >= {threshold} Hz → using full movement")
+        cutebot_script = "cutebot_move_task.py"
+    else:
+        print(f"[Controller] Frequency {frequency:.2f} Hz < {threshold} Hz → using small step")
+        cutebot_script = "cutebot_step.py"
 
-    t2 = time.time()  # Step C start
-
-    # Step C: Flash Cutebot
-    threshold = 5.0  # Hz, can adjust
-    cutebot_script = "cutebot_move_task.py" if frequency >= threshold else "cutebot_step.py"
     print(f"[Decision] Flashing Cutebot with {cutebot_script}")
 
+    # Step C: Flash Cutebot
+    t2 = time.time()
     try:
         subprocess.run(["uflash", cutebot_script], check=True)
     except subprocess.CalledProcessError as e:
         print(f"[Robot] Cutebot execution failed: {e}")
-
     t3 = time.time()
 
     # Latency summary
