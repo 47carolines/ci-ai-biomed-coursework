@@ -52,10 +52,10 @@ def main():
     # Log clearly above/below threshold
     if frequency >= threshold:
         print(f"[Controller] Frequency {frequency:.2f} Hz >= {threshold} Hz → using full movement")
-        cutebot_script = "cutebot_move_task.py"
+        cutebot_script = "cutebot_move_task.hex"
     else:
         print(f"[Controller] Frequency {frequency:.2f} Hz < {threshold} Hz → using small step")
-        cutebot_script = "cutebot_step.py"
+        cutebot_script = "cutebot_step.hex"
 
     print(f"[Decision] Flashing Cutebot with {cutebot_script}")
 
