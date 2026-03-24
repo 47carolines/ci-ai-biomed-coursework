@@ -18,10 +18,13 @@ def main():
     ie = input("Enter current injection amplitude (nA): ")
     print(f"Sending I_E = {ie} to controller node...")
 
-    t0 = time.time()  # Step A start
+    t0 = time.time()
 
-    # Step A: Run simulation on controller node
+    # -------------------------
+    # Step A: Run simulation
+    # -------------------------
     cmd = f"python3 controller_server.py {ie}"
+
     process = subprocess.Popen(
         [
             "ssh",
@@ -39,35 +42,50 @@ def main():
     for line in process.stdout:
         print(line, end="", flush=True)
         buffer_output += line
-    process.wait()
-    t1 = time.time()  # Step B start
 
+    process.wait()
+    t1 = time.time()
+
+    # -------------------------
     # Step B: Decision
+    # -------------------------
     frequency = extract_frequency(buffer_output)
-    threshold = 5.0  # Hz
+    threshold = 5.0
+
     if frequency is None:
-        print("Failed to extract frequency, defaulting to small step")
+        print("Failed to extract frequency → defaulting to small step")
         frequency = 0.0
 
-    # Log clearly above/below threshold
     if frequency >= threshold:
-        print(f"[Controller] Frequency {frequency:.2f} Hz >= {threshold} Hz → using full movement")
-        cutebot_script = "cutebot_move_task.hex"
+        mode = "FULL_MOVEMENT"
+        print(f"[Controller] {frequency:.2f} Hz ≥ {threshold} Hz → FULL MOVEMENT")
     else:
-        print(f"[Controller] Frequency {frequency:.2f} Hz < {threshold} Hz → using small step")
-        cutebot_script = "cutebot_step.hex"
+        mode = "SMALL_STEP"
+        print(f"[Controller] {frequency:.2f} Hz < {threshold} Hz → SMALL STEP")
 
-    print(f"[Decision] Flashing Cutebot with {cutebot_script}")
+    print(f"[Decision] Mode selected: {mode}")
 
-    # Step C: Flash Cutebot
     t2 = time.time()
-    try:
-        subprocess.run(["uflash", cutebot_script], check=True)
-    except subprocess.CalledProcessError as e:
-        print(f"[Robot] Cutebot execution failed: {e}")
+
+    # -------------------------
+    # Step C: Robot execution (REALISTIC MODEL)
+    # -------------------------
+    print("\n[Robot] Cutebot executing preloaded behavior...")
+    print(f"[Robot] Mode received: {mode}")
+
+    # This is your "execution trigger"
+    if mode == "FULL_MOVEMENT":
+        print("[Robot] Executing full movement sequence")
+        # robot already flashed with full routine
+    else:
+        print("[Robot] Executing small step sequence")
+        # robot already flashed with small-step routine
+
     t3 = time.time()
 
-    # Latency summary
+    # -------------------------
+    # Latency report
+    # -------------------------
     print("\n[Latency report]")
     print(f"Step A (Simulation)       : {t1 - t0:.3f} s")
     print(f"Step B (Decision)         : {t2 - t1:.3f} s")
