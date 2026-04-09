@@ -1,14 +1,32 @@
 import subprocess
 import re
+import os
+import time
 
+# -------------------------------------------------
+# VM CONFIG
+# -------------------------------------------------
 VMS = [
-    "ubuntu@vm1-ip",
+    "ubuntu@2001:1948:417:7:f816:3eff:fe92:eb83",
     "ubuntu@vm2-ip",
     "ubuntu@vm3-ip"
 ]
 
-KEY = "~/.ssh/fabric_key"
+KEY = os.path.expanduser("~/.ssh/fabric_sliver_key")
 
+# -------------------------------------------------
+# HEX MAPPING (DEPLOYMENT LAYER)
+# -------------------------------------------------
+ACTION_TO_HEX = {
+    "FAST_MOVE": "microbit-full-move.hex",
+    "MOVE": "microbit-small-step.hex",
+    "IDLE": "microbit-idle.hex",
+    "COORDINATED_MOVE": "microbit-coordinated.hex"
+}
+
+# -------------------------------------------------
+# VM EXECUTION LAYER
+# -------------------------------------------------
 def run_vm(vm, I_E):
     cmd = f"""
     ssh -i {KEY} {vm} '
@@ -23,18 +41,121 @@ def run_vm(vm, I_E):
     return result.stdout
 
 
+# -------------------------------------------------
+# PARSE FREQUENCY OUTPUT
+# -------------------------------------------------
 def extract_freq(output):
     match = re.search(r"([\d.]+)\s*Hz", output)
-    return float(match.group(1)) if match else 0
+    return float(match.group(1)) if match else 0.0
 
 
+# -------------------------------------------------
+# COLLECT ALL VM RESULTS
+# -------------------------------------------------
 def run_all(I_E_values):
     freqs = []
 
     for vm, I_E in zip(VMS, I_E_values):
-        print(f"Running VM {vm} with I_E={I_E}")
+        print(f"[VM] Running {vm} with I_E={I_E}")
         out = run_vm(vm, I_E)
         freq = extract_freq(out)
+
+        print(f"[VM] {vm} → {freq:.2f} Hz")
         freqs.append(freq)
 
     return freqs
+
+
+# -------------------------------------------------
+# DECISION CONTROLLER (YOUR LOGIC, CLEANED)
+# -------------------------------------------------
+def decision_controller(freqs):
+    avg_freq = sum(freqs) / len(freqs)
+
+    breathing = 0.2 + (avg_freq / 50)
+    breathing = min(max(breathing, 0.2), 2.0)
+
+    active_areas = sum(f > 15 for f in freqs)
+    coordinated = active_areas >= 2
+
+    if avg_freq > 18:
+        base_action = "FAST_MOVE"
+    elif avg_freq > 12:
+        base_action = "MOVE"
+    else:
+        base_action = "IDLE"
+
+    if coordinated:
+        action = "COORDINATED_MOVE"
+    else:
+        action = base_action
+
+    return {
+        "action": action,
+        "breathing": breathing,
+        "avg_freq": avg_freq,
+        "active_areas": active_areas,
+        "raw": freqs
+    }
+
+
+# -------------------------------------------------
+# DEPLOY HEX (MICRO:BIT OR SIMULATED)
+# -------------------------------------------------
+def deploy_hex(hex_file):
+    MICROBIT_DRIVE = "/Volumes/MICROBIT"
+
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    full_path = os.path.join(script_dir, hex_file)
+
+    print(f"[Deploy] Using {hex_file}")
+
+    if not os.path.exists(full_path):
+        raise FileNotFoundError(f"Missing hex file: {full_path}")
+
+    timeout = 10
+    while timeout > 0 and not os.path.exists(MICROBIT_DRIVE):
+        time.sleep(1)
+        timeout -= 1
+
+    if not os.path.exists(MICROBIT_DRIVE):
+        raise FileNotFoundError("Micro:bit not mounted")
+
+    subprocess.run(["cp", full_path, MICROBIT_DRIVE])
+    print(f"[Deploy] {hex_file} → MICROBIT SUCCESS")
+
+
+# -------------------------------------------------
+# MAIN HUB PIPELINE
+# -------------------------------------------------
+def main(I_E_values):
+    print("\n=== HUB START ===")
+
+    # Step 1: run VMs
+    freqs = run_all(I_E_values)
+
+    # Step 2: decision
+    result = decision_controller(freqs)
+
+    print("\n=== DECISION ===")
+    print(result)
+
+    # Step 3: map to hex
+    action = result["action"]
+    hex_file = ACTION_TO_HEX[action]
+
+    print(f"[Hub] Action → {action}")
+    print(f"[Hub] Deploying → {hex_file}")
+
+    # Step 4: deploy
+    deploy_hex(hex_file)
+
+    print("\n=== HUB COMPLETE ===")
+
+
+# -------------------------------------------------
+# ENTRY POINT
+# -------------------------------------------------
+if __name__ == "__main__":
+    I_E_VALUES = [10, 12, 14]  # example inputs
+    main(I_E_VALUES)
