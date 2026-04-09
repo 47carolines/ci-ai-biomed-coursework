@@ -35,6 +35,52 @@ Navigate to the folder you have your config and private sliver key in. Enter the
 
 ## Part 2: Setting up the Environment
 
+### 🔐 Allowing Caroline’s SSH Access (FABRIC Controller)
+
+To allow the central controller (Caroline) to SSH into your VM, you must add her **FABRIC sliver public key** to your VM’s authorized keys.
+
+This enables secure access for orchestration and automation using FABRIC’s SSH system.
+
+---
+
+### 📌 Caroline’s Public FABRIC Key
+
+Add the following public key to your VM:
+
+```text
+ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBDTJwsTLfX7wjHCMdP4t2GPjqJIDNKp1rZye1ZtayD1q44HXNJLsgmzVXif4y/A6UAwoAcdYnM6aDB3UWHalRgg= fabric-sliver-key
+```
+1. Open authorized keys file
+```
+mkdir -p ~/.ssh
+nano ~/.ssh/authorized_keys
+```
+
+2. Add Caroline’s key
+	*	Paste the key above on a new line
+	*	Do not modify or wrap the key
+	*	Ensure each key in the file is on its own line
+
+3. Save and exit nano
+    *	Press CTRL + X
+    *	Press Y
+    *	Press Enter
+
+4. Set correct permissions
+```
+chmod 700 ~/.ssh
+chmod 600 ~/.ssh/authorized_keys
+```
+
+Verification
+
+Caroline can now access your VM using:
+```
+ssh -F ~/.ssh/config -i ~/.ssh/fabric_sliver_key ubuntu@<vm-name>
+```
+
+## Setting up the fear simulation
+
 We are going to be setting up the fear simulation that we covered in Mini-Project 1A on the Virtual Machine.
 
 ### Install Miniconda:
