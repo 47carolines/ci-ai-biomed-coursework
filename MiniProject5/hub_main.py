@@ -7,9 +7,9 @@ import time
 # INPUT STIMULUS SOURCES (TEAM MEMBERS / BRAIN AREAS)
 # -------------------------------------------------
 VM_STIMULUS_MAP = {
-    "vm1": "2001:1948:417:7:f816:3eff:fe92:eb83",
-    # "vm2": "...",
-    # "vm3": "..."
+    "vm1": "2001:1948:417:7:f816:3eff:fe92:eb83", # Caroline
+    "vm2": "2001:1948:417:7:f816:3eff:fe5e:1458", # Scott
+    "vm3": "2001:1948:417:7:f816:3eff:fed1:1280" # Noor
 }
 
 KEY = os.path.expanduser("~/.ssh/fabric-sliver-key")
@@ -192,8 +192,8 @@ if __name__ == "__main__":
 
     vm_inputs = [
         ("vm1", 10),
-        # ("vm2", 12),
-        # ("vm3", 8),
+        ("vm2", 12),
+        ("vm3", 8),
     ]
 
     main(vm_inputs)
