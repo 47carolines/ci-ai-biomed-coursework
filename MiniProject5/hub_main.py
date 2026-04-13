@@ -4,17 +4,19 @@ import os
 import time
 
 # -------------------------------------------------
-# VM CONFIG
+# INPUT STIMULUS SOURCES (TEAM MEMBERS / BRAIN AREAS)
 # -------------------------------------------------
-VMS = [
-    "2001:1948:417:7:f816:3eff:fe92:eb83" # add other VMs as needed
-]
+VM_STIMULUS_MAP = {
+    "vm1": "2001:1948:417:7:f816:3eff:fe92:eb83",
+    # "vm2": "...",
+    # "vm3": "..."
+}
 
 KEY = os.path.expanduser("~/.ssh/fabric-sliver-key")
 CONFIG = os.path.expanduser("~/.ssh/config.txt")
 
 # -------------------------------------------------
-# HEX MAPPING (DEPLOYMENT LAYER)
+# MOTOR OUTPUT MAPPING (CUTEBOT ACTION LAYER)
 # -------------------------------------------------
 ACTION_TO_HEX = {
     "FAST_MOVE": "microbit-full-move.hex",
@@ -23,38 +25,35 @@ ACTION_TO_HEX = {
 }
 
 # -------------------------------------------------
-# VM EXECUTION LAYER
+# STIMULUS EXECUTION LAYER (VM = BRAIN AREA INPUT)
 # -------------------------------------------------
-def run_vm(vm, I_E):
+def run_vm(vm_id, I_E):
+    vm_ip = VM_STIMULUS_MAP[vm_id]
+
+    print("\n======================================")
+    print(f"[STIMULUS] Team Member / Brain Area: {vm_id}")
+    print(f"[THALAMUS HUB] Dispatching stimulus to {vm_ip}")
+    print(f"[PARAMETER] I_E = {I_E}")
+    print("======================================")
+
     cmd = f"""
     set -e
 
-    # Activate conda environment
     source ~/miniconda3/etc/profile.d/conda.sh
     conda activate fear_sim
 
     cd ~/fear_simulation
 
-    echo "=============================="
-    echo "[VM] Starting simulation with I_E={I_E}"
-    echo "=============================="
+    echo "[VM-{vm_id}] Stimulus received by cortical area"
+    echo "[VM-{vm_id}] Running neural simulation pipeline"
 
-    echo "[Step] Updating parameters"
     python update_params.py {I_E}
-
-    echo '[Worker] Building network'
     python build_network.py
-
-    echo '[Worker] Updating configs'
     python update_configs.py
-
-    echo "[Step] Running simulation"
     python run_bionet.py config.json
-
-    echo "[Step] Extracting output"
     python check_output.py
 
-    echo "[VM] Done"
+    echo "[VM-{vm_id}] Output ready"
     """
 
     process = subprocess.Popen(
@@ -62,7 +61,7 @@ def run_vm(vm, I_E):
             "ssh",
             "-i", KEY,
             "-F", CONFIG,
-            f"ubuntu@{vm}",
+            f"ubuntu@{vm_ip}",
             cmd
         ],
         stdout=subprocess.PIPE,
@@ -72,7 +71,7 @@ def run_vm(vm, I_E):
 
     output = ""
     for line in process.stdout:
-        print(line, end="", flush=True)  # 👈 LIVE LOGGING
+        print(line, end="", flush=True)
         output += line
 
     process.wait()
@@ -80,7 +79,7 @@ def run_vm(vm, I_E):
 
 
 # -------------------------------------------------
-# PARSE FREQUENCY OUTPUT
+# OUTPUT EXTRACTION (NEURAL RESPONSE)
 # -------------------------------------------------
 def extract_freq(output):
     match = re.search(r"([\d.]+)\s*Hz", output)
@@ -88,24 +87,27 @@ def extract_freq(output):
 
 
 # -------------------------------------------------
-# COLLECT ALL VM RESULTS
+# COLLECT ALL BRAIN AREA RESPONSES
 # -------------------------------------------------
-def run_all(I_E_values):
+def run_all(vm_inputs):
     freqs = []
 
-    for vm, I_E in zip(VMS, I_E_values):
-        print(f"[VM] Running {vm} with I_E={I_E}")
-        out = run_vm(vm, I_E)
+    for vm_id, I_E in vm_inputs:
+        print("\n--------------------------------------")
+        print(f"[HUB] Receiving stimulus from {vm_id}")
+        print("--------------------------------------")
+
+        out = run_vm(vm_id, I_E)
         freq = extract_freq(out)
 
-        print(f"[VM] {vm} → {freq:.2f} Hz")
+        print(f"[RESULT] {vm_id} → {freq:.2f} Hz neural response")
         freqs.append(freq)
 
     return freqs
 
 
 # -------------------------------------------------
-# DECISION CONTROLLER (YOUR LOGIC, CLEANED)
+# DECISION COORDINATION CONTROLLER (THRESHOLD + INTEGRATION)
 # -------------------------------------------------
 def decision_controller(freqs):
     avg_freq = sum(freqs) / len(freqs)
@@ -129,7 +131,7 @@ def decision_controller(freqs):
 
 
 # -------------------------------------------------
-# DEPLOY HEX (MICRO:BIT OR SIMULATED)
+# CUTEBOT EXECUTION LAYER
 # -------------------------------------------------
 def deploy_hex(hex_file):
     MICROBIT_DRIVE = "/Volumes/MICROBIT"
@@ -137,7 +139,7 @@ def deploy_hex(hex_file):
     script_dir = os.path.dirname(os.path.abspath(__file__))
     full_path = os.path.join(script_dir, hex_file)
 
-    print(f"[Deploy] Using {hex_file}")
+    print(f"[CUTEBOT] Deploying motor program: {hex_file}")
 
     if not os.path.exists(full_path):
         raise FileNotFoundError(f"Missing hex file: {full_path}")
@@ -151,40 +153,47 @@ def deploy_hex(hex_file):
         raise FileNotFoundError("Micro:bit not mounted")
 
     subprocess.run(["cp", full_path, MICROBIT_DRIVE])
-    print(f"[Deploy] {hex_file} → MICROBIT SUCCESS")
+
+    print(f"[CUTEBOT] Execution successful → movement triggered")
 
 
 # -------------------------------------------------
-# MAIN HUB PIPELINE
+# MAIN HUB (INPUT → INTEGRATION → OUTPUT)
 # -------------------------------------------------
-def main(I_E_values):
-    print("\n=== HUB START ===")
+def main(vm_inputs):
+    print("\n=== INPUT/OUTPUT HUB (THALAMUS ANALOGUE) START ===")
 
-    # Step 1: run VMs
-    freqs = run_all(I_E_values)
+    # Step 1: collect stimuli from brain areas
+    freqs = run_all(vm_inputs)
 
-    # Step 2: decision
+    # Step 2: integrate signals
     result = decision_controller(freqs)
 
-    print("\n=== DECISION ===")
+    print("\n=== DECISION COORDINATION RESULT ===")
     print(result)
 
-    # Step 3: map to hex
+    # Step 3: motor mapping
     action = result["action"]
     hex_file = ACTION_TO_HEX[action]
 
-    print(f"[Hub] Action → {action}")
-    print(f"[Hub] Deploying → {hex_file}")
+    print(f"[HUB] Coordinated output → {action}")
+    print(f"[HUB] Sending to Cutebot → {hex_file}")
 
-    # Step 4: deploy
+    # Step 4: execute movement
     deploy_hex(hex_file)
 
-    print("\n=== HUB COMPLETE ===")
+    print("\n=== SYSTEM COMPLETE ===")
 
 
 # -------------------------------------------------
-# ENTRY POINT
+# ENTRY POINT (TEAM MEMBER SIMULATION)
 # -------------------------------------------------
 if __name__ == "__main__":
-    I_E_VALUES = [10]  # example inputs
-    main(I_E_VALUES)
+
+    vm_inputs = [
+        ("vm1", 10),
+        # ("vm2", 12),
+        # ("vm3", 8),
+    ]
+
+    main(vm_inputs)
