@@ -7,12 +7,11 @@ import time
 # VM CONFIG
 # -------------------------------------------------
 VMS = [
-    "ubuntu@2001:1948:417:7:f816:3eff:fe92:eb83",
-    "ubuntu@vm2-ip",
-    "ubuntu@vm3-ip"
+    "2001:1948:417:7:f816:3eff:fe92:eb83" # add other VMs as needed
 ]
 
 KEY = os.path.expanduser("~/.ssh/fabric_sliver_key")
+CONFIG = os.path.expanduser("~/.ssh/config.txt")
 
 # -------------------------------------------------
 # HEX MAPPING (DEPLOYMENT LAYER)
@@ -28,7 +27,6 @@ ACTION_TO_HEX = {
 # -------------------------------------------------
 def run_vm(vm, I_E):
     cmd = f"""
-    ssh -i {KEY} {vm} '
     set -e
     cd ~/fear_simulation &&
     
@@ -40,10 +38,20 @@ def run_vm(vm, I_E):
     
     echo "[Worker] Extracting output"
     python check_output.py
-    '
     """
 
-    result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+    result = subprocess.run(
+        [
+            "ssh",
+            "-i", KEY,
+            "-F", CONFIG,
+            f"ubuntu@{vm}",
+            cmd
+        ],
+        capture_output=True,
+        text=True
+    )
+
     return result.stdout
 
 
@@ -154,5 +162,5 @@ def main(I_E_values):
 # ENTRY POINT
 # -------------------------------------------------
 if __name__ == "__main__":
-    I_E_VALUES = [10, 12, 14]  # example inputs
+    I_E_VALUES = [10]  # example inputs
     main(I_E_VALUES)
