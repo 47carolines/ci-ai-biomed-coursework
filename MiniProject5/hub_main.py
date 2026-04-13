@@ -28,19 +28,25 @@ ACTION_TO_HEX = {
 def run_vm(vm, I_E):
     cmd = f"""
     set -e
-    cd ~/fear_simulation &&
-    
-    echo "[Worker] Updating parameters"
-    python update_params.py {I_E} &&
-    
-    echo "[Worker] Running simulation"
-    python run_bionet.py config.json &&
-    
-    echo "[Worker] Extracting output"
+    cd ~/fear_simulation
+
+    echo "=============================="
+    echo "[VM] Starting simulation with I_E={I_E}"
+    echo "=============================="
+
+    echo "[Step] Updating parameters"
+    python update_params.py {I_E}
+
+    echo "[Step] Running simulation"
+    python run_bionet.py config.json
+
+    echo "[Step] Extracting output"
     python check_output.py
+
+    echo "[VM] Done"
     """
 
-    result = subprocess.run(
+    process = subprocess.Popen(
         [
             "ssh",
             "-i", KEY,
@@ -48,11 +54,18 @@ def run_vm(vm, I_E):
             f"ubuntu@{vm}",
             cmd
         ],
-        capture_output=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
         text=True
     )
 
-    return result.stdout
+    output = ""
+    for line in process.stdout:
+        print(line, end="", flush=True)  # 👈 LIVE LOGGING
+        output += line
+
+    process.wait()
+    return output
 
 
 # -------------------------------------------------
