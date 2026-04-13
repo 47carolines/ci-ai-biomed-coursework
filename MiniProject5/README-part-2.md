@@ -55,7 +55,7 @@ nrnivmodl .
 5. Add `update_params.py` script to `fear_simulation` folder so we can update params on command
 6. Update `check_output.py` to new code that doesnt include uflash and other things
 7. Update `parameters.py` to remove comments to increase the chance of things updating correctly. 
-8. make sure to have `build_network.py` updated to include overwrite_config=True so we can rerun
+8. make sure to have `build_network.py` updated to include `overwrite_config=True` so we can rerun. dont forget to add comma on line above to avoid syntax error
 
 ## Part 3: Run the network
 

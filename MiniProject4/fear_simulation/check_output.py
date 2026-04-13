@@ -13,4 +13,4 @@ else:
     ISI = np.diff(times)
     firing_rate = 1000 / np.mean(ISI)
 
-print(firing_rate)
+print(f"{firing_rate} Hz")
