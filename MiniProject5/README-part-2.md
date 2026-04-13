@@ -52,6 +52,10 @@ cd fear_simulation/components/mechanisms
 nrnivmodl .
 ```
 
+5. Add `update_params.py` script to `fear_simulation` folder so we can update params on command
+6. Update `check_output.py` to new code that doesnt include uflash and other things
+7. Update `parameters.py` to remove comments to increase the chance of things updating correctly. 
+
 ## Part 3: Run the network
 
 Run these commands to build the network:

@@ -20,8 +20,7 @@ KEY = os.path.expanduser("~/.ssh/fabric_sliver_key")
 ACTION_TO_HEX = {
     "FAST_MOVE": "microbit-full-move.hex",
     "MOVE": "microbit-small-step.hex",
-    "IDLE": "microbit-idle.hex",
-    "COORDINATED_MOVE": "microbit-coordinated.hex"
+    "IDLE": "microbit-FLashing-Heart.hex"
 }
 
 # -------------------------------------------------
@@ -30,9 +29,16 @@ ACTION_TO_HEX = {
 def run_vm(vm, I_E):
     cmd = f"""
     ssh -i {KEY} {vm} '
+    set -e
     cd ~/fear_simulation &&
+    
+    echo "[Worker] Updating parameters"
     python update_params.py {I_E} &&
+    
+    echo "[Worker] Running simulation"
     python run_bionet.py config.json &&
+    
+    echo "[Worker] Extracting output"
     python check_output.py
     '
     """
@@ -75,26 +81,17 @@ def decision_controller(freqs):
     breathing = 0.2 + (avg_freq / 50)
     breathing = min(max(breathing, 0.2), 2.0)
 
-    active_areas = sum(f > 15 for f in freqs)
-    coordinated = active_areas >= 2
-
     if avg_freq > 18:
-        base_action = "FAST_MOVE"
+        action = "FAST_MOVE"
     elif avg_freq > 12:
-        base_action = "MOVE"
+        action = "MOVE"
     else:
-        base_action = "IDLE"
-
-    if coordinated:
-        action = "COORDINATED_MOVE"
-    else:
-        action = base_action
+        action = "IDLE"
 
     return {
         "action": action,
         "breathing": breathing,
         "avg_freq": avg_freq,
-        "active_areas": active_areas,
         "raw": freqs
     }
 
