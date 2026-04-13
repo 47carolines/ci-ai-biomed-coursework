@@ -10,7 +10,7 @@ VMS = [
     "2001:1948:417:7:f816:3eff:fe92:eb83" # add other VMs as needed
 ]
 
-KEY = os.path.expanduser("~/.ssh/fabric_sliver_key")
+KEY = os.path.expanduser("~/.ssh/fabric-sliver-key")
 CONFIG = os.path.expanduser("~/.ssh/config.txt")
 
 # -------------------------------------------------
@@ -28,6 +28,11 @@ ACTION_TO_HEX = {
 def run_vm(vm, I_E):
     cmd = f"""
     set -e
+
+    # Activate conda environment
+    source ~/miniconda3/etc/profile.d/conda.sh
+    conda activate fear_sim
+
     cd ~/fear_simulation
 
     echo "=============================="
@@ -36,6 +41,12 @@ def run_vm(vm, I_E):
 
     echo "[Step] Updating parameters"
     python update_params.py {I_E}
+
+    echo '[Worker] Building network'
+    python build_network.py
+
+    echo '[Worker] Updating configs'
+    python update_configs.py
 
     echo "[Step] Running simulation"
     python run_bionet.py config.json
