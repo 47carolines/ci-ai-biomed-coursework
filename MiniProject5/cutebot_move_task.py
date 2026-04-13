@@ -1,0 +1,7 @@
+# Shows the logic inside microbit-full-move.hex file
+
+basic.show_icon(IconNames.HEART)
+cuteBot.move_time(cuteBot.Direction.FORWARD, 30, 2)
+cuteBot.move_time(cuteBot.Direction.LEFT, 30, 2)
+cuteBot.move_time(cuteBot.Direction.LEFT, 30, 2)
+cuteBot.move_time(cuteBot.Direction.LEFT, 30, 2)
