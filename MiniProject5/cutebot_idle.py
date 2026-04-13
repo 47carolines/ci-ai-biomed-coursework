@@ -1,3 +1,5 @@
+# Shows the logic inside microbit-Flashing-Heart.hex file
+
 def on_forever():
     basic.show_leds("""
         . # . # .
