@@ -7,9 +7,9 @@ import time
 # INPUT STIMULUS SOURCES (TEAM MEMBERS / BRAIN AREAS)
 # -------------------------------------------------
 VM_STIMULUS_MAP = {
-    "vm1": "2001:1948:417:7:f816:3eff:fe92:eb83", # Caroline
-    "vm2": "2001:1948:417:7:f816:3eff:fe5e:1458", # Scott
-    "vm3": "2001:1948:417:7:f816:3eff:fed1:1280" # Noor
+    "vm1": "2001:1948:417:7:f816:3eff:fe92:eb83", # Caroline (Low)
+    "vm2": "2001:1948:417:7:f816:3eff:fe5e:1458", # Scott (Medium)
+    "vm3": "2001:1948:417:7:f816:3eff:fed1:1280" # Noor (High)
 }
 
 KEY = os.path.expanduser("~/.ssh/fabric-sliver-key")
@@ -115,7 +115,7 @@ def decision_controller(freqs):
     breathing = 0.2 + (avg_freq / 50)
     breathing = min(max(breathing, 0.2), 2.0)
 
-    if avg_freq > 18:
+    if avg_freq > 19:
         action = "FAST_MOVE"
     elif avg_freq > 12:
         action = "MOVE"
@@ -191,9 +191,9 @@ def main(vm_inputs):
 if __name__ == "__main__":
 
     vm_inputs = [
-        ("vm1", 10),
-        ("vm2", 12),
-        ("vm3", 8),
+        ("vm1", 0.5),
+        ("vm2", 0.9),
+        ("vm3", 1.2)
     ]
 
     main(vm_inputs)
